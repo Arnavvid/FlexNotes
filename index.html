@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flex Notes</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPaRecX0SaftMDSUtNzL5F8SS4tfWH09g",
+            authDomain: "flexnotes-940fd.firebaseapp.com",
+            projectId: "flexnotes-940fd",
+            storageBucket: "flexnotes-940fd.firebasestorage.app",
+            messagingSenderId: "207820882812",
+            appId: "1:207820882812:web:01cddd5f79cc5c67e69af9"
+        };
+    </script>
+
+    <link rel = "stylesheet" href="login.css">
+    <link rel="stylesheet" href="notes.css">
+</head>
+<body>
+    <div id = "login-screen">
+        
+        <div id="login-box">
+            <h1 style="align-self:center; color: white; font-family: helvetica; ">Login</h1>
+
+            <div style="width: 100%; height: 1px; background-color: gray; margin-bottom: 20px;"></div>
+
+            <h3 class="form-text">Email</h3>
+            <input type="email" id = "login-email">
+            <br>
+
+            <h3 class="form-text">Password</h3>
+            <input type="password" id = "login-password">
+
+            <button type="submit" id="login-button">Submit</button>
+        </div>
+    </div>
+
+
+
+
+    <div id = "notes-screen" style="display: none;">
+
+        <div id = "side-bar">
+            <div id="side-bar-top">
+                <div style="height: 60px; display: flex; justify-content: center; align-items: center;"><button id = "add-note">+</button></div>
+                <br>
+                <a style="padding-top: 7px; color: white; font-family: cursive;">Add Note</a>
+                <br><br><br>
+                <br><br><br>
+                <a style="padding-bottom: 7px; padding-top: 7px; color: white; font-family: cursive;">Search</a>
+                <input id = "search-note">
+            </div>
+            
+            <div id = "side-bar-bottom">
+                <button id = "sign-out-button" onclick="">Sign Out</button>
+            </div>
+            
+        </div>
+
+        <div id = "display-area">
+            
+        </div>
+    </div>
+
+
+    <script src="homepage.js"></script>
+</body>
+</html>

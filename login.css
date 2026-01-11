@@ -1,0 +1,66 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#login-screen{
+    background-color: rgb(31, 30, 30);
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    flex: 1;
+}
+
+#login-box{
+    background-color: rgba(46, 46, 46, 0.479);
+    width: 400px;
+    height: 450px;
+    box-shadow: 7px 7px rgba(0, 0, 0, 0.192);
+    padding-left: 40px;
+    padding-right: 47px;
+    padding-bottom: 30px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: top;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+
+.form-text{
+    font-family: Helvetica;
+    color: rgba(255, 255, 255, 0.726);
+}
+
+
+#login-email, #login-password{
+    width: 100%;
+    height: 30px;
+    font-size: large;
+    color: white;
+    padding: 5px;
+    margin-bottom: 5px;
+    background-color: rgb(87, 84, 84);
+    border: none;
+    outline: 2px solid rgba(255, 255, 255, 0.116);
+
+}
+
+#login-button{
+    width: 150px;
+    height: 33px;
+    align-self: center;
+    margin-top: 80px;
+    font: bold 17px helvetica;
+    color: rgb(51, 50, 50);
+    background-color: rgba(255, 255, 255, 0.822);
+    border: none;
+    cursor: pointer;
+}
