@@ -1,16 +1,4 @@
 @media (max-width: 768px) {
-  #side-bar {
-    position: relative;
-    width: 100%;
-    height: auto;
-  }
-
-  #display-area {
-    margin-left: 0;
-  }
-}
-
-@media (max-width: 768px) {
   #save-button {
     position: static;
     margin-left: auto;
@@ -301,4 +289,186 @@
 
 
 
+@media (max-width: 768px) {
+    #notes-screen {
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
 
+    #side-bar {
+        position: relative;
+        width: 100%;
+        height: 50px;
+        display: flex;
+        flex-direction: row;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    #side-bar-top {
+        height: auto;
+        width: 70%;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 10px;
+        gap: 15px;
+    }
+
+    #side-bar-top a {
+        display: none;
+    }
+
+    #add-note {
+        margin-top: 0;
+        height: 45px;
+        width: 45px;
+        font-size: 35px;
+        flex-shrink: 0;
+    }
+
+    #add-note:active {
+        height: 40px;
+        width: 40px;
+    }
+
+    #search-note {
+        flex: 1;
+        min-width: 0;
+        height: 40px;
+        border: 2px solid black;
+    }
+
+    #side-bar-bottom {
+        width: 30%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #sign-out-button {
+        position: static;
+        margin: 0;
+        width: 100px;
+        height: 35px;
+        font-size: 13px;
+    }
+
+    #sign-out-button:hover {
+        width: 100px;
+        height: 35px;
+        font-size: 13px;
+    }
+
+    #display-area {
+        margin-left: 0;
+        width: 100%;
+        height: calc(100vh - 75px);
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        padding: 10px;
+        box-sizing: border-box;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .note-preview {
+        width: calc(50% - 10px);
+        min-width: 0;
+        min-height: 180px;
+        margin: 5px;
+        padding: 12px 15px;
+        font-size: 13px;
+    }
+
+    .note-preview h3 {
+        font-size: 16px;
+        margin: 5px 0;
+    }
+
+    .note-preview p {
+        font-size: 12px;
+        line-height: 1.3;
+    }
+
+    .full-note {
+        padding: 15px;
+        height: 100%;
+        overflow-y: auto;
+    }
+
+    #note-title {
+        width: 100%;
+        font-size: 24px;
+        min-height: 35px;
+        margin-bottom: 10px;
+    }
+
+    #note-inner {
+        width: 100%;
+        font-size: 16px;
+        padding: 15px;
+        min-height: 200px;
+        margin-top: 15px;
+    }
+
+    .full-note > div:first-child {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    #back-button {
+        padding: 10px 15px;
+        margin-right: 0;
+        font-size: 14px;
+    }
+
+    #save-button {
+        position: static !important;
+        right: auto !important;
+        margin-left: auto;
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    #attach-button,
+    #delete-button {
+        padding: 10px 15px;
+        font-size: 14px;
+        margin-top: 15px;
+    }
+
+    .editor-open #side-bar {
+        display: none;
+    }
+
+    .editor-open #display-area {
+        height: 100vh;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .note-preview {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    #side-bar-top {
+        width: 65%;
+    }
+
+    #side-bar-bottom {
+        width: 35%;
+    }
+
+    #sign-out-button {
+        width: 85px;
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+}
