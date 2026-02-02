@@ -90,6 +90,7 @@ function loadNotes(userId) {
       renderNotes(cachedNotes);
     });
 }
+
 function renderNotes(notes) {
   displayArea.innerHTML = "";
 
@@ -155,20 +156,17 @@ function openEditor(noteId) {
                 </div>
             `;
             
-            document.getElementById("side-bar").style.display = "none";
-            displayArea.style.marginLeft = "0px";
+            document.body.classList.add("editor-open");
         }
     });
 }
 
 
-
 displayArea.addEventListener("click", (event) => {
   if (event.target.id === "back-button") {
     editorOpen = false;
+    document.body.classList.remove("editor-open");
     loadNotes(auth.currentUser.uid);
-    document.getElementById("side-bar").style.display = "block";
-    document.getElementById("display-area").style.marginLeft = "200px";
     return;
   }
 
@@ -179,6 +177,7 @@ displayArea.addEventListener("click", (event) => {
   }
 
   if(event.target.id === "delete-button"){
+    
     delete_note();
     return;
   }
@@ -215,9 +214,8 @@ function save_data(){
 function delete_note(){
   if (!confirm("Are you sure you want to delete this note?")) return;
   db.collection("notes").doc(activeNoteId).delete().then(() => {
-    document.getElementById("side-bar").style.display = "block";
-    document.getElementById("display-area").style.marginLeft = "200px";
     loadNotes(auth.currentUser.uid);
+    document.body.classList.remove("editor-open");
     editorOpen = false;
   })
   .catch((error) => {
@@ -250,4 +248,20 @@ signOutBtn.addEventListener("click", () => {
     .catch(error => {
       console.error("Logout failed:", error);
     });
+});
+
+const passwordInput = document.getElementById("login-password");
+const togglePasswordButton = document.getElementById("toggle-password");
+var eye_state = 1;
+togglePasswordButton.addEventListener("click", () => {
+  const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+  passwordInput.setAttribute("type", type);
+  if(eye_state === 0){
+    togglePasswordButton.style.transform = "translateY(-59.5%)";
+    eye_state = 1;
+  } 
+  else{
+    togglePasswordButton.style.transform = "translateY(0)";
+    eye_state = 0;
+  }
 });

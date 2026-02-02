@@ -1,3 +1,30 @@
+@media (max-width: 768px) {
+  #side-bar {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+
+  #display-area {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  #save-button {
+    position: static;
+    margin-left: auto;
+  }
+}
+
+.editor-open #side-bar {
+  display: none;
+}
+.editor-open #display-area {
+  margin-left: 0;
+}
+
+
 #notes-screen{
     background-color: rgb(31, 30, 30);
     width: 100%;
@@ -94,13 +121,18 @@
     flex-wrap: wrap;
     justify-content: flex-start;
     align-items: flex-start;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    overflow-x: hidden;
+    max-width: 100%;
 }
 
 .note-preview{
     background-color: black;
     color: white;
-    width: 220px;
-    height: 250px;
+    width: min(220px, 90vw);
+    height: auto;
+    min-height: 250px;
     font-family: Helvetica;
     font-size: 15px;
     border-radius: 7px;
