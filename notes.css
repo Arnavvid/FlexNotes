@@ -107,19 +107,21 @@
     margin-left: 200px;
     background-color: rgb(27, 27, 27);
     flex: 1;
-    min-height: 100%;
+
+    height: 100vh;
+
     overflow-y: auto;
     overflow-x: hidden;
+
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     flex-wrap: wrap;
-    justify-content: flex-start;
-    align-items: flex-start;
+    align-content: flex-start;
+
     word-wrap: break-word;
     overflow-wrap: break-word;
-    overflow-x: hidden;
-    max-width: 100%;
 }
+
 
 .note-preview{
     background-color: black;
