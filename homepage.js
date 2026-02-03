@@ -134,32 +134,64 @@ displayArea.addEventListener("click", (event) => {
 });
 
 function openEditor(noteId) {
-    activeNoteId = noteId;
-    editorOpen = true;
-    db.collection("notes").doc(noteId).get().then((doc) => {
-        if (doc.exists) {
-            const noteData = doc.data();
-            displayArea.innerHTML = `
-                <div class="full-note">
-                    <div style="display: flex; align-items: center; margin-bottom: 20px; width: 100%;">
-                        <button id="back-button">←</button>
-                        <textarea id="note-title">${noteData.title}</textarea>
-                        <button id="save-button">Save</button>
-                    </div>
-                    <div style="left: 20px; width: 55.5%; height: 1px; background-color: white; padding: 1px;"></div>
-                    <textarea id="note-inner">${noteData.content}</textarea>
-                    <div id="attachment-display"></div>
-                    <div style = "display: flex; justify-content: space-between; width: 100%;">
-                      <button id="attach-button">Attach</button>
-                      <button id="delete-button">Delete</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.classList.add("editor-open");
-        }
+  activeNoteId = noteId;
+  editorOpen = true;
+
+  db.collection("notes").doc(noteId).get().then((doc) => {
+    if (!doc.exists) return;
+
+    const noteData = doc.data();
+
+    displayArea.innerHTML = `
+      <div class="full-note">
+        <div style="display: flex; align-items: center; margin-bottom: 20px; width: 100%;">
+          <button id="back-button">←</button>
+          <textarea id="note-title">${noteData.title}</textarea>
+          <button id="save-button">Save</button>
+        </div>
+
+        <div style="width: 100%; height: 1px; background-color: white;"></div>
+
+        <textarea id="note-inner">${noteData.content}</textarea>
+
+        <div style="display: flex; justify-content: space-between; width: 100%;">
+          <button id="attach-button">Attach</button>
+          <button id="delete-button">Delete</button>
+        </div>
+
+        <input type="file" id="file-input" style="display:none" />
+        <div id="attachment-display"></div>
+      </div>
+    `;
+
+    document.body.classList.add("editor-open");
+
+    const attachmentDiv = document.getElementById("attachment-display");
+    attachmentDiv.innerHTML = "";
+
+    const attachments = noteData.attachments || [];
+
+    attachments.forEach(file => {
+      const card = document.createElement("div");
+      card.className = "attachment-card";
+
+      card.innerHTML = `
+        <div class="attachment-info" onclick="window.open('${file.url}', '_blank')">
+          <div class="attachment-name">${file.name}</div>
+          <div class="attachment-meta">${file.type || "file"} • ${Math.round(file.size / 1024)} KB</div>
+        </div>
+        <div class="attachment-actions">
+          <button class="delete-attachment-btn" data-url="${file.url}" data-name="${file.name}">
+            Delete
+          </button>
+        </div>
+      `;
+
+      attachmentDiv.appendChild(card);
     });
+  });
 }
+
 
 
 displayArea.addEventListener("click", (event) => {
@@ -177,10 +209,34 @@ displayArea.addEventListener("click", (event) => {
   }
 
   if(event.target.id === "delete-button"){
-    
     delete_note();
     return;
   }
+  if (event.target.id === "attach-button") {
+    document.getElementById("file-input").click();
+    return;
+  }
+  if (event.target.innerText === "Delete" && event.target.dataset.url) {
+    const fileUrl = event.target.dataset.url;
+
+    if (!confirm("Delete this attachment?")) return;
+
+    const noteRef = db.collection("notes").doc(activeNoteId);
+
+    noteRef.get().then(doc => {
+      if (!doc.exists) return;
+
+      const attachments = doc.data().attachments || [];
+      const updated = attachments.filter(a => a.url !== fileUrl);
+
+      return noteRef.update({ attachments: updated });
+    }).then(() => {
+      openEditor(activeNoteId);
+    });
+
+    return;
+  }
+
 });
 
 function save_data(){
@@ -264,4 +320,48 @@ togglePasswordButton.addEventListener("click", () => {
     togglePasswordButton.style.transform = "translateY(0)";
     eye_state = 0;
   }
+});
+
+document.addEventListener("change", async (event) => {
+  if (event.target.id !== "file-input") return;
+
+  const file = event.target.files[0];
+  if (!file || !activeNoteId) return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "flexnotes_upload");
+
+  const cloudName = "decdtsqup";
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+    {
+      method: "POST",
+      body: formData
+    }
+  );
+
+  const data = await response.json();
+
+  if (!data.secure_url) {
+    console.error("Upload failed", data);
+    return;
+  }
+
+  await db.collection("notes").doc(activeNoteId).update({
+    attachments: firebase.firestore.FieldValue.arrayUnion({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      url: data.secure_url,
+      uploadedAt: Date.now()
+    })
+  });
+  openEditor(activeNoteId);
+
+  event.target.value = "";
 });
