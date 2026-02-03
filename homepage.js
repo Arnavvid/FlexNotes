@@ -335,6 +335,11 @@ document.addEventListener("change", async (event) => {
   formData.append("file", file);
   formData.append("upload_preset", "flexnotes_upload");
 
+  formData.append(
+    "folder",
+    `flexnotes/${user.uid}/${activeNoteId}`
+  );
+  
   const cloudName = "decdtsqup";
 
   const response = await fetch(
@@ -365,3 +370,7 @@ document.addEventListener("change", async (event) => {
 
   event.target.value = "";
 });
+
+togglePasswordButton.addEventListener("touchstart", e => {
+  e.preventDefault();
+}, { passive: false });
