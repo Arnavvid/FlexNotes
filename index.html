@@ -23,6 +23,9 @@
     <link rel="stylesheet" href="notes.css">
 </head>
 <body>
+    <div id = "upload-screen" class="whiten-screen" style="display: none;">
+        <div class = "whiten-text">+</div>
+    </div>
     <div id = "login-screen">
         
         <div id="login-box">
@@ -30,22 +33,24 @@
 
             <div style="width: 100%; height: 1px; background-color: gray; margin-bottom: 20px;"></div>
 
-            <h3 class="form-text">Email</h3>
-            <input type="email" id = "login-email">
-            <br>
+            <form id="login-form">
+                <h3 class="form-text">Email</h3>
+                <input type="email" id="login-email">
+                <br>
 
-            <h3 class="form-text">Password</h3>
+                <h3 class="form-text">Password</h3>
 
-            <div style="position: relative; width: 100%;">
-                <input type="password" id="login-password">
-                <div id="eye-icon-div">
-                    <img src="assets/eye_close_open.png" id="toggle-password" draggable="false" tabindex="-1" style="transform: translateY(-59.5%);">
+                <div style="position: relative; width: 100%;">
+                    <input type="password" id="login-password">
+                    <div id="eye-icon-div">
+                        <img src="assets/eye_close_open.png" id="toggle-password" draggable="false" tabindex="-1">
+                    </div>
                 </div>
-            </div>
-            <button type="submit" id="login-button">Log In</button>
+
+                <button type="submit" id="login-button">Log In</button>
+            </form>
         </div>
     </div>
-
 
 
 

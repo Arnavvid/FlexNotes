@@ -36,22 +36,30 @@ auth.onAuthStateChanged(user => {
 });
 
 
-const loginButton = document.getElementById("login-button");
 const email_e = document.getElementById("login-email");
 const password_e = document.getElementById("login-password");
+const loginForm = document.getElementById("login-form");
 
-loginButton.addEventListener("click", () =>{
+loginForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
   const email = email_e.value.trim();
   const pass = password_e.value.trim();
 
-  if(!email || !pass){
+  if (!email || !pass) {
     alert("Enter both fields");
     return;
   }
-  auth.signInWithEmailAndPassword(email, pass).catch(error => {
-    alert(error.message);
-  });
+
+  auth.signInWithEmailAndPassword(email, pass)
+      .catch(error => alert(error.message));
 });
+
+
+
+
+
+
 
 const db = firebase.firestore();
 const add_note = document.getElementById("add-note");
@@ -133,6 +141,8 @@ displayArea.addEventListener("click", (event) => {
   openEditor(noteId);
 });
 
+
+
 function openEditor(noteId) {
   activeNoteId = noteId;
   editorOpen = true;
@@ -156,6 +166,7 @@ function openEditor(noteId) {
 
         <div style="display: flex; justify-content: space-between; width: 100%;">
           <button id="attach-button">Attach</button>
+          <button id="refresh-button">Refresh</button>
           <button id="delete-button">Delete</button>
         </div>
 
@@ -163,6 +174,29 @@ function openEditor(noteId) {
         <div id="attachment-display"></div>
       </div>
     `;
+
+    const noteInner = document.getElementById("note-inner");
+    const noteTitle = document.getElementById("note-title");
+
+    const draftKey = `draft-${activeNoteId}`;
+
+    const savedDraft = localStorage.getItem(draftKey);
+    if (savedDraft) {
+      const parsed = JSON.parse(savedDraft);
+      noteInner.value = parsed.content;
+      noteTitle.value = parsed.title;
+    }
+
+    // Save draft on input
+    noteInner.addEventListener("input", saveDraft);
+    noteTitle.addEventListener("input", saveDraft);
+
+    function saveDraft() {
+      localStorage.setItem(draftKey, JSON.stringify({
+        title: noteTitle.value,
+        content: noteInner.value
+      }));
+    }
 
     document.body.classList.add("editor-open");
 
@@ -197,6 +231,7 @@ function openEditor(noteId) {
 displayArea.addEventListener("click", (event) => {
   if (event.target.id === "back-button") {
     editorOpen = false;
+    save_data();
     document.body.classList.remove("editor-open");
     loadNotes(auth.currentUser.uid);
     return;
@@ -216,6 +251,12 @@ displayArea.addEventListener("click", (event) => {
     document.getElementById("file-input").click();
     return;
   }
+
+  if (event.target.id === "refresh-button") {
+    openEditor(activeNoteId);
+    return;
+  }
+
   if (event.target.innerText === "Delete" && event.target.dataset.url) {
     const fileUrl = event.target.dataset.url;
 
@@ -248,6 +289,7 @@ function save_data(){
     updated: firebase.firestore.FieldValue.serverTimestamp()
   })
   .then(() => {
+    localStorage.removeItem(`draft-${activeNoteId}`);
     saveBtn = document.getElementById("save-button");
     const originalText = saveBtn.innerText;
     saveBtn.innerText = "Saved!";
@@ -309,7 +351,9 @@ signOutBtn.addEventListener("click", () => {
 const passwordInput = document.getElementById("login-password");
 const togglePasswordButton = document.getElementById("toggle-password");
 var eye_state = 1;
-togglePasswordButton.addEventListener("click", () => {
+togglePasswordButton.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
   const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
   passwordInput.setAttribute("type", type);
   if(eye_state === 0){
@@ -326,47 +370,7 @@ document.addEventListener("change", async (event) => {
   if (event.target.id !== "file-input") return;
 
   const file = event.target.files[0];
-  if (!file || !activeNoteId) return;
-
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", "flexnotes_upload");
-
-  formData.append(
-    "folder",
-    `flexnotes/${user.uid}/${activeNoteId}`
-  );
-  
-  const cloudName = "decdtsqup";
-
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
-    {
-      method: "POST",
-      body: formData
-    }
-  );
-
-  const data = await response.json();
-
-  if (!data.secure_url) {
-    console.error("Upload failed", data);
-    return;
-  }
-
-  await db.collection("notes").doc(activeNoteId).update({
-    attachments: firebase.firestore.FieldValue.arrayUnion({
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      url: data.secure_url,
-      uploadedAt: Date.now()
-    })
-  });
-  openEditor(activeNoteId);
+  addFile(file);
 
   event.target.value = "";
 });
@@ -374,3 +378,99 @@ document.addEventListener("change", async (event) => {
 togglePasswordButton.addEventListener("touchstart", e => {
   e.preventDefault();
 }, { passive: false });
+
+let dragCounter = 0;
+const uploadDiv = document.getElementById("upload-screen");
+
+window.addEventListener("dragenter", (event) => {
+  if (!editorOpen) return;
+  event.preventDefault();
+  dragCounter++;
+  uploadDiv.style.display = "flex";
+});
+
+window.addEventListener("dragleave", (event) => {
+  if (!editorOpen) return;
+  dragCounter--;
+
+  if (dragCounter <= 0) {
+    uploadDiv.style.display = "none";
+    dragCounter = 0;
+  }
+});
+
+window.addEventListener("dragover", (event) => {
+  if (!editorOpen) return;
+  event.preventDefault();
+});
+
+window.addEventListener("drop", (event) => {
+  if (!editorOpen || !activeNoteId) return;
+
+  event.preventDefault();
+  uploadDiv.style.display = "none";
+  dragCounter = 0;
+
+  const files = event.dataTransfer.files;
+  if (!files || files.length === 0) return;
+
+  for (let i = 0; i < files.length; i++) {
+    addFile(files[i]);
+  }
+});
+
+async function addFile(file) {
+  if (!file || !activeNoteId) return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const attachmentDiv = document.getElementById("attachment-display");
+
+  const tempCard = document.createElement("div");
+  tempCard.className = "uploading-card";
+  tempCard.innerText = `Uploading ${file.name}...`;
+  attachmentDiv.prepend(tempCard);
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "flexnotes_upload");
+  formData.append("folder", `flexnotes/${user.uid}/${activeNoteId}`);
+
+  const cloudName = "decdtsqup";
+
+  try {
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+      {
+        method: "POST",
+        body: formData
+      }
+    );
+
+    const data = await response.json();
+
+    if (!data.secure_url) {
+      throw new Error("Upload failed");
+    }
+
+    await db.collection("notes").doc(activeNoteId).update({
+      attachments: firebase.firestore.FieldValue.arrayUnion({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: data.secure_url,
+        uploadedAt: Date.now()
+      })
+    });
+
+  } catch (err) {
+    tempCard.innerText = `Upload failed`;
+    tempCard.style.color = "red";
+    return;
+  }
+
+  tempCard.remove();
+
+  openEditor(activeNoteId);
+}
