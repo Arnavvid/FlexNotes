@@ -170,32 +170,34 @@
     overflow-wrap: break-word;
 }
 
-
-.note-preview{
+.note-preview {
     background-color: black;
-    border: 2px solid #333333; 
-    transition: box-shadow 0.3s, border-color 0.3s;
+    border: 2px solid #333333;
     color: white;
+
     width: min(220px, 90vw);
-    height: auto;
     min-height: 250px;
-    font-family: Helvetica;
-    font-size: 15px;
-    border-radius: 7px;
+
+    border-radius: 10px;
     margin: 15px;
-    padding-left: 25px;
-    padding-right: 25px;
-    padding-top: 15px;
+    padding: 20px;
+
     display: flex;
     flex-direction: column;
     position: relative;
-    user-select: none;
-    line-height: 1.4;
-    transition: box-shadow 0.3s ease
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease,
+        border-color 0.2s ease;
 }
-.note-preview:hover{
-    outline: 2px solid rgba(255, 255, 255, 0);
-    background-color: rgba(92, 92, 92, 0.074);
+
+.note-preview:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.6);
 }
 
 
