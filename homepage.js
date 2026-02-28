@@ -3,6 +3,7 @@ const auth = firebase.auth();
 let activeNoteId = null;
 let activeNoteData = null;
 let editorOpen = false;
+let isPickingColor = false;
 let currentUserId = "";
 let cachedNotes = [];
 
@@ -14,7 +15,6 @@ auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
 
 auth.onAuthStateChanged(user => {
   if (user) {
-    //logged in
     const loginpage = document.getElementById("login-screen");
     const notespage = document.getElementById("notes-screen");
     loginpage.style.display = "none";
@@ -27,7 +27,6 @@ auth.onAuthStateChanged(user => {
     activeNoteData = null;
     editorOpen = false;
     cachedNotes = [];
-    //logged out
     const loginpage = document.getElementById("login-screen");
     const notespage = document.getElementById("notes-screen");
     notespage.style.display = "none";
@@ -86,7 +85,7 @@ function loadNotes(userId) {
     .orderBy("updated", "desc")
     .onSnapshot(snapshot => {
 
-      if (editorOpen) return;
+      if (editorOpen || isPickingColor) return;
 
       cachedNotes = [];
       displayArea.innerHTML = "";
@@ -106,7 +105,20 @@ function renderNotes(notes) {
     const notediv = document.createElement("div");
     notediv.dataset.noteId = note.id;
     notediv.className = "note-preview";
+    
+    const noteColor = note.color || "#333333";
+    
+    notediv.style.borderColor = noteColor;
+    notediv.style.boxShadow = `0 0 1px ${noteColor}`;
     notediv.innerHTML = `
+      <div class="color-dots-container">
+        <div class="color-dot preset-dot" style="background-color: #ff5f56;" data-color="#ff5f56"></div>
+        <div class="color-dot preset-dot" style="background-color: #ffbd2e;" data-color="#ffbd2e"></div>
+        <div class="color-dot preset-dot" style="background-color: #27c93f;" data-color="#27c93f"></div>
+        <div class="color-dot preset-dot" style="background-color: #333333;" data-color="#333333"></div>
+        <div class="color-dot custom-dot" title="Custom Color"></div>
+        <input type="color" class="hidden-picker" style="display: none;" value="${noteColor}">
+      </div>
       <div><h3>${note.title}</h3></div>
       <div style="width:100%;height:2px;background:white;"></div>
       <p>${getPreviewText(note.content)}</p>
@@ -132,15 +144,49 @@ function getPreviewText(text) {
   return preview + (words.length > 30 ? "..." : "");
 }
 
-//note click
 displayArea.addEventListener("click", (event) => {
+  const dot = event.target.closest('.color-dot');
+  if (dot) {
+    event.stopPropagation(); 
+    event.preventDefault();
+    const noteDiv = dot.closest('.note-preview');
+    const noteId = noteDiv.dataset.noteId;
+
+    if (dot.classList.contains('custom-dot')) {
+      const picker = noteDiv.querySelector('.hidden-picker');
+      
+      picker.onclick = (e) => e.stopPropagation(); 
+      isPickingColor = true;
+      picker.click(); 
+
+      picker.oninput = (e) => {
+        e.stopPropagation();
+        const newColor = e.target.value;
+        
+        noteDiv.style.borderColor = newColor;
+        noteDiv.style.boxShadow = `0 0 1px ${newColor}`; 
+        
+        db.collection("notes").doc(noteId).update({ color: newColor });
+      };
+      picker.onchange = () => {
+        isPickingColor = false;
+      };
+    }
+    else {
+      const newColor = dot.dataset.color;
+      noteDiv.style.borderColor = newColor;
+      noteDiv.style.boxShadow = `0 0 1px ${newColor}`;
+      db.collection("notes").doc(noteId).update({ color: newColor });
+    }
+    return;
+  }
+
   const noteDiv = event.target.closest(".note-preview");
   if (!noteDiv) return;
 
   const noteId = noteDiv.dataset.noteId;
   openEditor(noteId);
 });
-
 
 
 function openEditor(noteId) {
@@ -151,9 +197,10 @@ function openEditor(noteId) {
     if (!doc.exists) return;
 
     const noteData = doc.data();
+    const noteColor = noteData.color || "#333333";
 
     displayArea.innerHTML = `
-      <div class="full-note">
+      <div class="full-note" id="editor-boundary" style="border-color: ${noteColor}; box-shadow: 0 0 20px ${noteColor};" data-current-color="${noteColor}">
         <div style="display: flex; align-items: center; margin-bottom: 20px; width: 100%;">
           <button id="back-button">←</button>
           <textarea id="note-title">${noteData.title}</textarea>
@@ -161,7 +208,6 @@ function openEditor(noteId) {
         </div>
 
         <div style="width: 100%; height: 1px; background-color: white;"></div>
-
         <textarea id="note-inner">${noteData.content}</textarea>
 
         <div style="display: flex; justify-content: space-between; width: 100%;">
@@ -175,6 +221,27 @@ function openEditor(noteId) {
       </div>
     `;
 
+    const editorBoundary = document.getElementById('editor-boundary');
+    document.querySelectorAll('.editor-dots .color-dot').forEach(dot => {
+      dot.addEventListener('click', (e) => {
+        if (e.target.classList.contains('custom-dot')) {
+          const picker = document.getElementById('editor-color-picker');
+          picker.click();
+          picker.oninput = (ev) => {
+            const newColor = ev.target.value;
+            editorBoundary.style.borderColor = newColor;
+            editorBoundary.style.boxShadow = `0 0 20px ${newColor}`;
+            editorBoundary.dataset.currentColor = newColor;
+          };
+        } else {
+          const newColor = e.target.dataset.color;
+          editorBoundary.style.borderColor = newColor;
+          editorBoundary.style.boxShadow = `0 0 20px ${newColor}`;
+          editorBoundary.dataset.currentColor = newColor;
+        }
+      });
+    });
+
     const noteInner = document.getElementById("note-inner");
     const noteTitle = document.getElementById("note-title");
 
@@ -187,7 +254,6 @@ function openEditor(noteId) {
       noteTitle.value = parsed.title;
     }
 
-    // Save draft on input
     noteInner.addEventListener("input", saveDraft);
     noteTitle.addEventListener("input", saveDraft);
 
@@ -281,11 +347,16 @@ displayArea.addEventListener("click", (event) => {
 });
 
 function save_data(){
-  note_content = document.getElementById("note-inner").value;
-  note_title = document.getElementById("note-title").value;
+const note_content = document.getElementById("note-inner").value;
+  const note_title = document.getElementById("note-title").value;
+  
+  const boundary = document.getElementById("editor-boundary");
+  const note_color = boundary ? boundary.dataset.currentColor : "#333333";
+
   db.collection("notes").doc(activeNoteId).update({
     title: note_title,
     content: note_content,
+    color: note_color,
     updated: firebase.firestore.FieldValue.serverTimestamp()
   })
   .then(() => {
